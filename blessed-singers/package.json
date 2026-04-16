@@ -1,0 +1,8 @@
+{
+  "name": "blessed-singers",
+  "version": "1.0.0",
+  "description": "Blessed Singers Family Choir",
+  "dependencies": {
+    "googleapis": "^128.0.0"
+  }
+}
