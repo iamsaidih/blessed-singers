@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -245,29 +244,36 @@
             try {
                 const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/ChoirData?key=${API_KEY}`);
                 const data = await response.json();
+                
                 if (data.values && data.values.length > 1) {
                     const headers = data.values[0];
-                    const idCol = headers.indexOf('ID'), nameCol = headers.indexOf('Name'), phoneCol = headers.indexOf('Phone');
-                    const partCol = headers.indexOf('VoicePart'), joinedCol = headers.indexOf('JoinedDate');
-                    const monthCol = headers.indexOf('Month'), paidCol = headers.indexOf('Paid');
+                    const rows = data.values.slice(1);
                     
-                    members = []; contributions = {};
-                    const memberMap = new Map();
+                    members = [];
+                    contributions = {};
                     
-                    data.values.slice(1).forEach(row => {
-                        const id = parseInt(row[idCol]) || 0;
-                        const name = row[nameCol] || '';
-                        if (id && name && !memberMap.has(id)) {
-                            memberMap.set(id, { id, name, phone: row[phoneCol] || '', part: row[partCol] || '', joinedDate: row[joinedCol] || '2025-11' });
-                        }
-                        const month = row[monthCol];
-                        if (month) {
-                            if (!contributions[month]) contributions[month] = {};
-                            contributions[month][id] = row[paidCol] === 'TRUE' || row[paidCol] === 'PAID' || row[paidCol] === 'YES';
+                    const monthColumns = headers.slice(5);
+                    
+                    rows.forEach(row => {
+                        const id = parseInt(row[0]) || 0;
+                        const name = row[1] || '';
+                        const phone = row[2] || '';
+                        const part = row[3] || '';
+                        const joinedDate = row[4] || '2025-11';
+                        
+                        if (id && name) {
+                            members.push({ id, name, phone, part, joinedDate });
+                            
+                            monthColumns.forEach((month, index) => {
+                                const status = row[5 + index];
+                                if (status && status !== '—') {
+                                    if (!contributions[month]) contributions[month] = {};
+                                    contributions[month][id] = status === 'PAID' || status === 'TRUE';
+                                }
+                            });
                         }
                     });
                     
-                    members = Array.from(memberMap.values());
                     if (members.length === 0) initializeMembers();
                     saveToLocalStorage();
                     updateSyncStatus('Synced');
@@ -283,19 +289,13 @@
             updateSyncStatus('Saving...');
             try {
                 const allMonths = getAllMonths();
-                const rows = [];
-                members.forEach(m => {
-                    allMonths.forEach(month => {
-                        const paid = contributions[month] && contributions[month][m.id] ? 'TRUE' : 'FALSE';
-                        rows.push([m.id, m.name, m.phone || '', m.part || '', m.joinedDate, month, paid]);
-                    });
-                });
                 
                 const response = await fetch(FUNCTION_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ rows })
+                    body: JSON.stringify({ members, contributions, allMonths })
                 });
+                
                 const result = await response.json();
                 
                 if (result.success) {
@@ -564,14 +564,21 @@
         
         function exportFullReport() {
             const allMonths = getAllMonths();
-            let csv = 'ID,Name,Phone,VoicePart,JoinedDate,Month,Paid\n';
+            let csv = 'Name,Phone,Joined,' + allMonths.join(',') + ',Total Paid\n';
             members.forEach(m => {
+                let row = `"${m.name}","${m.phone || ''}",${m.joinedDate}`;
+                let totalPaid = 0;
                 allMonths.forEach(month => {
-                    const paid = contributions[month] && contributions[month][m.id] ? 'TRUE' : 'FALSE';
-                    csv += `${m.id},"${m.name}","${m.phone || ''}","${m.part || ''}",${m.joinedDate},${month},${paid}\n`;
+                    if (month >= m.joinedDate) {
+                        const paid = contributions[month] && contributions[month][m.id];
+                        row += paid ? ',PAID' : ',UNPAID';
+                        if (paid) totalPaid += MONTHLY_FEE;
+                    } else { row += ',—'; }
                 });
+                row += `,${totalPaid}`;
+                csv += row + '\n';
             });
-            downloadCSV(csv, `Full_Data_${currentMonth}.csv`);
+            downloadCSV(csv, `Full_History_${currentMonth}.csv`);
             showToast('📊 Exported!', 'success');
         }
         
