@@ -5,25 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>Blessed Singers Family Choir</title>
     <link rel="icon" href="logo.jpeg">
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
         body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
         .container { max-width: 1400px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; }
         .header { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 20px 30px; display: flex; align-items: center; gap: 20px; border-bottom: 3px solid #764ba2; flex-wrap: wrap; }
         .header img { height: 60px; width: auto; border-radius: 10px; }
-        .header h1 { color: #2d3748; font-size: 28px; flex: 1; }
-        .cloud-status { display: flex; align-items: center; gap: 8px; padding: 8px 15px; background: white; border-radius: 20px; font-size: 14px; }
-        .cloud-status.synced { background: #c6f6d5; color: #22543d; }
+        .header h1 { color: #2d3748; font-size: 24px; flex: 1; }
         .login-section { display: flex; gap: 10px; }
         .login-section input { padding: 10px 15px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; }
         .btn { padding: 12px 20px; background: #764ba2; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.3s; min-height: 44px; }
         .btn:hover { background: #5a3a7a; transform: translateY(-2px); }
         .btn-secondary { background: #48bb78; }
-        .btn-secondary:hover { background: #38a169; }
         .btn-danger { background: #f56565; }
-        .btn-danger:hover { background: #e53e3e; }
         .btn-info { background: #4299e1; }
-        .btn-info:hover { background: #3182ce; }
+        .btn-export { background: #ed8936; }
+        .btn-import { background: #38b2ac; }
+        .btn-image { background: #9b59b6; }
         .tabs { display: flex; padding: 0 30px; background: #f7fafc; border-bottom: 1px solid #e2e8f0; overflow-x: auto; }
         .tab { padding: 15px 20px; background: none; border: none; font-size: 16px; font-weight: 600; color: #718096; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap; min-height: 54px; }
         .tab.active { color: #764ba2; border-bottom-color: #764ba2; }
@@ -51,29 +50,26 @@
         .card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 10px; }
         .card h3 { font-size: 13px; opacity: 0.9; margin-bottom: 8px; }
         .card .value { font-size: 24px; font-weight: 700; }
-        .export-section { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
         .user-info { display: flex; align-items: center; gap: 15px; }
         .editable { cursor: pointer; padding: 5px 8px; border-radius: 3px; display: inline-block; min-height: 40px; }
         .editable:hover { background: #fef5e7; }
         .toast { position: fixed; bottom: 20px; left: 20px; right: 20px; background: #333; color: white; padding: 15px 20px; border-radius: 10px; animation: slideIn 0.3s; z-index: 10000; text-align: center; max-width: 400px; margin: 0 auto; }
         .toast.success { background: #38a169; }
-        .toast.error { background: #e53e3e; }
         @keyframes slideIn { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .sync-bar { background: #e6fffa; padding: 8px 15px; text-align: center; font-size: 13px; border-bottom: 1px solid #38b2ac; }
         .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 20px; border-radius: 10px; }
         .note-text { font-size: 12px; color: #718096; margin-top: 5px; }
+        .report-area { background: white; padding: 30px; }
+        .report-area h2 { text-align: center; color: #764ba2; margin-bottom: 20px; }
+        .report-area .report-header { text-align: center; margin-bottom: 20px; }
+        .report-area .report-header img { height: 50px; margin-bottom: 10px; }
         @media (max-width: 768px) {
             body { padding: 10px; }
             .header { padding: 15px; }
-            .header h1 { font-size: 20px; }
+            .header h1 { font-size: 18px; }
             .form-row { grid-template-columns: 1fr; }
             .controls { flex-direction: column; align-items: stretch; }
-            .month-selector { flex-direction: column; align-items: stretch; }
-            .month-selector input { width: 100%; }
             .btn { width: 100%; }
-            .tabs { padding: 0 10px; }
             .tab { padding: 15px 15px; font-size: 14px; }
-            .content { padding: 15px; }
             .summary-cards { grid-template-columns: repeat(2, 1fr); }
             .card .value { font-size: 20px; }
             table { font-size: 13px; }
@@ -86,10 +82,6 @@
         <div class="header">
             <img src="logo.jpeg" alt="Blessed Singers Logo" id="logoImg">
             <h1>🎵 Blessed Singers</h1>
-            <div class="cloud-status" id="cloudStatus">
-                <span>☁️</span>
-                <span id="cloudStatusText">Ready</span>
-            </div>
             <div class="user-info" id="userInfo" style="display: none;">
                 <span>👤</span>
                 <button class="btn" id="logoutBtn" style="min-height:40px;padding:8px 15px;">Logout</button>
@@ -104,20 +96,14 @@
             <button class="tab active" data-tab="contributions">💰 Contributions</button>
             <button class="tab" data-tab="members">👥 Members</button>
             <button class="tab" data-tab="reports">📊 Reports</button>
-        </div>
-
-        <div class="sync-bar" id="syncBar" style="display:none;">
-            <span id="syncMessage">☁️ Auto-sync enabled</span>
+            <button class="tab" data-tab="sync">🔄 Sync</button>
         </div>
 
         <div class="content">
             <div id="loginMessage" style="text-align: center; padding: 50px 20px;">
                 <h2>🔐 Please login</h2>
                 <p style="color: #718096; margin-top: 15px;">Enter the accountant password to continue</p>
-                <p style="color: #38a169; margin-top: 25px; font-size: 14px;">
-                    ☁️ <strong>Auto-Sync Enabled</strong><br>
-                    <span style="font-size:13px;">All changes sync automatically across devices!</span>
-                </p>
+                <p style="color: #38a169; margin-top: 20px;">📸 Generate & download reports as images</p>
             </div>
 
             <div id="contributionsTab" class="hidden">
@@ -129,7 +115,6 @@
                     <button class="btn btn-secondary" id="loadMonthBtn">📋 Load</button>
                     <button class="btn" id="markAllPaidBtn">✅ All Paid</button>
                     <button class="btn btn-danger" id="markAllUnpaidBtn">❌ All Unpaid</button>
-                    <button class="btn btn-info" id="pullNowBtn">🔄 Refresh</button>
                 </div>
                 <div class="summary-cards" id="summaryCards"></div>
                 <div class="table-wrapper">
@@ -139,6 +124,9 @@
                         </thead>
                         <tbody id="contributionsBody"></tbody>
                     </table>
+                </div>
+                <div style="text-align:center; margin-top:20px;">
+                    <button class="btn btn-image" id="downloadMonthImage">📸 Download Month Report (Image)</button>
                 </div>
             </div>
 
@@ -152,14 +140,11 @@
                         <div class="form-group"><label>Joined Date *</label><input type="month" id="newJoinedDate"></div>
                         <button class="btn" id="addMemberBtn">➕ Add</button>
                     </div>
-                    <p class="note-text">* Required fields. New members only appear after they join.</p>
                 </div>
                 <p style="margin-bottom: 15px; font-size: 13px; color: #718096;">💡 Tap on any cell to edit</p>
                 <div class="table-wrapper">
                     <table id="membersTable">
-                        <thead>
-                            <tr><th>#</th><th>Name</th><th>Phone</th><th>Voice</th><th>Joined</th><th>Del</th></tr>
-                        </thead>
+                        <thead><tr><th>#</th><th>Name</th><th>Phone</th><th>Voice</th><th>Joined</th><th>Del</th></tr></thead>
                         <tbody id="membersBody"></tbody>
                     </table>
                 </div>
@@ -170,24 +155,37 @@
                 <div class="controls">
                     <div class="month-selector"><label>From:</label><input type="month" id="reportStartMonth"><label>To:</label><input type="month" id="reportEndMonth"></div>
                     <button class="btn btn-secondary" id="generateReportBtn">📊 Generate</button>
-                    <button class="btn" id="exportReportBtn">📥 Export CSV</button>
                 </div>
                 <div id="reportSummary" style="margin-bottom: 20px;"></div>
-                <div class="table-wrapper">
-                    <table id="reportTable">
-                        <thead><tr><th>#</th><th>Name</th><th>Joined</th><th>Months</th><th>✅</th><th>❌</th><th>Total</th><th>Rate</th></tr></thead>
-                        <tbody id="reportBody"></tbody>
-                    </table>
+                <div id="reportImageArea">
+                    <div class="table-wrapper">
+                        <table id="reportTable">
+                            <thead><tr><th>#</th><th>Name</th><th>Joined</th><th>Months</th><th>✅</th><th>❌</th><th>Total</th><th>Rate</th></tr></thead>
+                            <tbody id="reportBody"></tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="export-section"><button class="btn btn-info" id="exportFullReportBtn">📊 Full History CSV</button></div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:20px;">
+                    <button class="btn btn-image" id="downloadReportImage">📸 Download Report (Image)</button>
+                    <button class="btn btn-info" id="exportReportCSV">📥 Export CSV</button>
+                </div>
+            </div>
+
+            <div id="syncTab" class="hidden">
+                <h2 style="margin-bottom: 20px;">🔄 Sync Between Devices</h2>
+                <p style="margin-bottom:20px; background:#fef5e7; padding:15px; border-radius:10px;">
+                    📱 <strong>How to sync:</strong> Export a backup file on one device, send it to the other device (WhatsApp/Email), and import it.
+                </p>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
+                    <button class="btn btn-export" id="exportDataBtn">📤 Export Backup</button>
+                    <button class="btn btn-import" id="importDataBtn">📥 Import Backup</button>
+                    <input type="file" id="fileInput" accept=".json" style="display:none;">
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        const SHEET_ID = '1mV3u5_N4OybSAM0R0iakEcf5RlNhWtXGiKzk6bKb14M';
-        const API_KEY = 'AIzaSyA9H2hSFYAKrQoWd05x5sy5P82yLM8wwUQ';
-        const FUNCTION_URL = '/.netlify/functions/sync-sheet';
         const PASSWORD = 'blessed2025';
         const MONTHLY_FEE = 1000;
         
@@ -195,123 +193,31 @@
         let members = [];
         let contributions = {};
         let currentMonth = new Date().toISOString().slice(0, 7);
-        let syncTimeout = null;
-        
-        const cloudStatusText = document.getElementById('cloudStatusText');
-        const syncMessage = document.getElementById('syncMessage');
-        const cloudStatus = document.getElementById('cloudStatus');
-        const contributionsTab = document.getElementById('contributionsTab');
-        const membersTab = document.getElementById('membersTab');
-        const reportsTab = document.getElementById('reportsTab');
-        const monthPicker = document.getElementById('monthPicker');
-        const loginSection = document.getElementById('loginSection');
-        const userInfo = document.getElementById('userInfo');
-        const loginMessage = document.getElementById('loginMessage');
-        const tabs = document.getElementById('tabs');
-        const syncBar = document.getElementById('syncBar');
         
         document.addEventListener('DOMContentLoaded', () => {
-            monthPicker.value = currentMonth;
+            document.getElementById('monthPicker').value = currentMonth;
             document.getElementById('reportStartMonth').value = '2025-11';
             document.getElementById('reportEndMonth').value = currentMonth;
             document.getElementById('newJoinedDate').value = currentMonth;
             
             document.getElementById('loginBtn').addEventListener('click', login);
             document.getElementById('logoutBtn').addEventListener('click', logout);
-            document.getElementById('passwordInput').addEventListener('keypress', e => { if(e.key === 'Enter') login(); });
-            document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
             document.getElementById('loadMonthBtn').addEventListener('click', loadMonthData);
             document.getElementById('markAllPaidBtn').addEventListener('click', markAllPaid);
             document.getElementById('markAllUnpaidBtn').addEventListener('click', markAllUnpaid);
-            document.getElementById('pullNowBtn').addEventListener('click', pullFromCloud);
             document.getElementById('addMemberBtn').addEventListener('click', addMember);
             document.getElementById('generateReportBtn').addEventListener('click', generateReport);
-            document.getElementById('exportReportBtn').addEventListener('click', exportReport);
-            document.getElementById('exportFullReportBtn').addEventListener('click', exportFullReport);
+            document.getElementById('downloadMonthImage').addEventListener('click', downloadMonthImage);
+            document.getElementById('downloadReportImage').addEventListener('click', downloadReportImage);
+            document.getElementById('exportReportCSV').addEventListener('click', exportReportCSV);
+            document.getElementById('exportDataBtn').addEventListener('click', exportDataFile);
+            document.getElementById('importDataBtn').addEventListener('click', () => document.getElementById('fileInput').click());
+            document.getElementById('fileInput').addEventListener('change', importDataFile);
+            
+            document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
             
             loadFromLocalStorage();
         });
-        
-        function updateSyncStatus(status, isError = false) {
-            cloudStatusText.textContent = status;
-            syncMessage.textContent = isError ? `⚠️ ${status}` : `☁️ ${status}`;
-            cloudStatus.classList.remove('synced');
-            if (!isError && status === 'Synced') cloudStatus.classList.add('synced');
-        }
-        
-        async function pullFromCloud() {
-            updateSyncStatus('Pulling...');
-            try {
-                const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/ChoirData?key=${API_KEY}`);
-                const data = await response.json();
-                
-                if (data.values && data.values.length > 1) {
-                    const headers = data.values[0];
-                    const rows = data.values.slice(1);
-                    
-                    members = [];
-                    contributions = {};
-                    
-                    const monthColumns = headers.slice(5);
-                    
-                    rows.forEach(row => {
-                        const id = parseInt(row[0]) || 0;
-                        const name = row[1] || '';
-                        const phone = row[2] || '';
-                        const part = row[3] || '';
-                        const joinedDate = row[4] || '2025-11';
-                        
-                        if (id && name) {
-                            members.push({ id, name, phone, part, joinedDate });
-                            
-                            monthColumns.forEach((month, index) => {
-                                const status = row[5 + index];
-                                if (status && status !== '—') {
-                                    if (!contributions[month]) contributions[month] = {};
-                                    contributions[month][id] = status === 'PAID' || status === 'TRUE';
-                                }
-                            });
-                        }
-                    });
-                    
-                    if (members.length === 0) initializeMembers();
-                    saveToLocalStorage();
-                    updateSyncStatus('Synced');
-                } else {
-                    initializeMembers();
-                    updateSyncStatus('Ready');
-                }
-                return true;
-            } catch (e) { console.error(e); updateSyncStatus('Offline', true); return false; }
-        }
-        
-        async function pushToCloud() {
-            updateSyncStatus('Saving...');
-            try {
-                const allMonths = getAllMonths();
-                
-                const response = await fetch(FUNCTION_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ members, contributions, allMonths })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    saveToLocalStorage();
-                    updateSyncStatus('Synced');
-                    showToast('✅ Saved to cloud!', 'success');
-                } else {
-                    throw new Error(result.error || 'Sync failed');
-                }
-            } catch (e) { console.error(e); updateSyncStatus('Save failed', true); saveToLocalStorage(); }
-        }
-        
-        function scheduleSync() {
-            if (syncTimeout) clearTimeout(syncTimeout);
-            syncTimeout = setTimeout(() => { if (isLoggedIn) pushToCloud(); }, 1000);
-        }
         
         function saveToLocalStorage() {
             localStorage.setItem('blessed_singers_data', JSON.stringify({ members, contributions }));
@@ -369,16 +275,12 @@
         function login() {
             if (document.getElementById('passwordInput').value === PASSWORD) {
                 isLoggedIn = true;
-                loginSection.style.display = 'none';
-                userInfo.style.display = 'flex';
-                loginMessage.style.display = 'none';
-                tabs.style.display = 'flex';
-                syncBar.style.display = 'block';
-                
-                pullFromCloud().then(() => {
-                    switchTab('contributions');
-                    loadMonthData();
-                });
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('userInfo').style.display = 'flex';
+                document.getElementById('loginMessage').style.display = 'none';
+                document.getElementById('tabs').style.display = 'flex';
+                switchTab('contributions');
+                loadMonthData();
                 document.getElementById('passwordInput').value = '';
                 showToast('✅ Welcome!', 'success');
             } else { alert('❌ Incorrect password!'); }
@@ -386,7 +288,7 @@
         
         function logout() {
             if (confirm('Logout?')) {
-                pushToCloud();
+                saveToLocalStorage();
                 location.reload();
             }
         }
@@ -394,16 +296,15 @@
         function switchTab(tabName) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-            contributionsTab.classList.add('hidden');
-            membersTab.classList.add('hidden');
-            reportsTab.classList.add('hidden');
+            ['contributionsTab','membersTab','reportsTab','syncTab'].forEach(id => document.getElementById(id).classList.add('hidden'));
             
-            if (tabName === 'contributions') { contributionsTab.classList.remove('hidden'); loadMonthData(); }
-            else if (tabName === 'members') { membersTab.classList.remove('hidden'); renderMembersTable(); }
-            else { reportsTab.classList.remove('hidden'); }
+            if (tabName === 'contributions') { document.getElementById('contributionsTab').classList.remove('hidden'); loadMonthData(); }
+            else if (tabName === 'members') { document.getElementById('membersTab').classList.remove('hidden'); renderMembersTable(); }
+            else if (tabName === 'reports') { document.getElementById('reportsTab').classList.remove('hidden'); }
+            else if (tabName === 'sync') { document.getElementById('syncTab').classList.remove('hidden'); }
         }
         
-        function loadMonthData() { currentMonth = monthPicker.value; renderContributionsTable(currentMonth); }
+        function loadMonthData() { currentMonth = document.getElementById('monthPicker').value; renderContributionsTable(currentMonth); }
         
         function renderContributionsTable(month) {
             const tbody = document.getElementById('contributionsBody');
@@ -421,41 +322,37 @@
             tbody.innerHTML = '';
             active.sort((a, b) => a.name.localeCompare(b.name)).forEach((m, i) => {
                 const isPaid = contributions[month] && contributions[month][m.id];
-                const isNew = m.joinedDate === month;
                 const row = document.createElement('tr');
                 row.className = isPaid ? 'paid' : 'unpaid';
-                row.innerHTML = `<td>${i+1}</td><td>${m.name} ${isNew ? '🆕' : ''}</td><td>${m.phone || '—'}</td>
+                row.innerHTML = `<td>${i+1}</td><td>${m.name}</td><td>${m.phone || '—'}</td>
                     <td><span class="status-badge ${isPaid ? 'paid' : 'unpaid'}" onclick="togglePayment(${m.id}, '${month}')">${isPaid ? 'PAID' : 'UNPAID'}</span></td>
                     <td><button class="icon-btn" onclick="togglePayment(${m.id}, '${month}')">🔄</button></td>`;
                 tbody.appendChild(row);
             });
         }
         
-        async function togglePayment(memberId, month) {
+        function togglePayment(memberId, month) {
             if (!contributions[month]) contributions[month] = {};
             contributions[month][memberId] = !contributions[month][memberId];
+            saveToLocalStorage();
             renderContributionsTable(month);
-            const member = members.find(m => m.id === memberId);
-            showToast(`${member.name}: ${contributions[month][memberId] ? '✅ PAID' : '❌ UNPAID'}`);
-            scheduleSync();
         }
         
-        async function markAllPaid() {
-            const month = monthPicker.value;
+        function markAllPaid() {
+            const month = document.getElementById('monthPicker').value;
             if (!contributions[month]) contributions[month] = {};
             members.filter(m => m.joinedDate <= month).forEach(m => contributions[month][m.id] = true);
+            saveToLocalStorage();
             renderContributionsTable(month);
             showToast('✅ All marked PAID', 'success');
-            scheduleSync();
         }
         
-        async function markAllUnpaid() {
-            const month = monthPicker.value;
+        function markAllUnpaid() {
+            const month = document.getElementById('monthPicker').value;
             if (!contributions[month]) contributions[month] = {};
             members.filter(m => m.joinedDate <= month).forEach(m => contributions[month][m.id] = false);
+            saveToLocalStorage();
             renderContributionsTable(month);
-            showToast('❌ All marked UNPAID');
-            scheduleSync();
         }
         
         function renderMembersTable() {
@@ -474,7 +371,7 @@
             });
         }
         
-        async function editMember(id, field, el) {
+        function editMember(id, field, el) {
             const m = members.find(m => m.id === id);
             if (!m) return;
             let val = prompt(`Edit ${field}:`, m[field] || '');
@@ -482,13 +379,12 @@
                 if (field === 'joinedDate' && !val.match(/^\d{4}-\d{2}$/)) { alert('Format: YYYY-MM'); return; }
                 m[field] = val;
                 el.textContent = field === 'joinedDate' ? formatMonthShort(val) : (val || '—');
+                saveToLocalStorage();
                 showToast('✅ Updated', 'success');
-                if (contributionsTab && !contributionsTab.classList.contains('hidden')) loadMonthData();
-                scheduleSync();
             }
         }
         
-        async function addMember() {
+        function addMember() {
             const name = document.getElementById('newName').value.trim();
             const joined = document.getElementById('newJoinedDate').value;
             if (!name) { alert('❌ Name required!'); return; }
@@ -496,25 +392,40 @@
             
             const newId = Math.max(...members.map(m => m.id), 0) + 1;
             members.push({ id: newId, name, phone: document.getElementById('newPhone').value.trim(), part: document.getElementById('newPart').value.trim(), joinedDate: joined });
+            saveToLocalStorage();
             renderMembersTable();
             document.getElementById('newName').value = '';
             document.getElementById('newPhone').value = '';
             document.getElementById('newPart').value = '';
-            document.getElementById('newJoinedDate').value = currentMonth;
             showToast(`✅ ${name} added!`, 'success');
-            scheduleSync();
         }
         
-        async function deleteMember(id) {
-            const m = members.find(m => m.id === id);
-            if (!m) return;
-            if (confirm(`Delete ${m.name}?`)) {
-                members = members.filter(m => m.id !== id);
-                Object.keys(contributions).forEach(month => delete contributions[month][id]);
-                renderMembersTable();
-                showToast(`🗑️ Deleted`);
-                scheduleSync();
-            }
+        function deleteMember(id) {
+            if (!confirm('Delete?')) return;
+            members = members.filter(m => m.id !== id);
+            Object.keys(contributions).forEach(month => delete contributions[month][id]);
+            saveToLocalStorage();
+            renderMembersTable();
+        }
+        
+        async function downloadMonthImage() {
+            const element = document.getElementById('contributionsTab');
+            const canvas = await html2canvas(element, { backgroundColor: '#ffffff' });
+            const link = document.createElement('a');
+            link.download = `Blessed_Singers_${formatMonthShort(currentMonth).replace(' ','_')}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+            showToast('📸 Image downloaded!', 'success');
+        }
+        
+        async function downloadReportImage() {
+            const element = document.getElementById('reportImageArea');
+            const canvas = await html2canvas(element, { backgroundColor: '#ffffff' });
+            const link = document.createElement('a');
+            link.download = `Blessed_Singers_Report.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+            showToast('📸 Report image downloaded!', 'success');
         }
         
         function generateReport() {
@@ -552,17 +463,9 @@
                     <td>${m.totalPaid.toLocaleString()}</td><td>${m.paymentRate}%</td>`;
                 tbody.appendChild(row);
             });
-            window.lastReportData = reportData;
         }
         
-        function exportReport() {
-            if (!window.lastReportData) { alert('Generate report first!'); return; }
-            let csv = 'Name,Phone,Joined,Total Months,Paid,Unpaid,Total Paid,Rate\n';
-            window.lastReportData.forEach(m => { csv += `"${m.name}","${m.phone || ''}",${m.joinedDate},${m.totalMonths},${m.paidMonths},${m.unpaidMonths},${m.totalPaid},${m.paymentRate}%\n`; });
-            downloadCSV(csv, `Report_${currentMonth}.csv`);
-        }
-        
-        function exportFullReport() {
+        function exportReportCSV() {
             const allMonths = getAllMonths();
             let csv = 'Name,Phone,Joined,' + allMonths.join(',') + ',Total Paid\n';
             members.forEach(m => {
@@ -575,11 +478,41 @@
                         if (paid) totalPaid += MONTHLY_FEE;
                     } else { row += ',—'; }
                 });
-                row += `,${totalPaid}`;
-                csv += row + '\n';
+                csv += row + `,${totalPaid}\n`;
             });
-            downloadCSV(csv, `Full_History_${currentMonth}.csv`);
-            showToast('📊 Exported!', 'success');
+            downloadCSV(csv, `Full_History.csv`);
+            showToast('📥 CSV exported!', 'success');
+        }
+        
+        function exportDataFile() {
+            const data = { members, contributions, exportDate: new Date().toISOString() };
+            const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `Blessed_Singers_Backup.json`;
+            a.click();
+            showToast('📤 Backup exported!', 'success');
+        }
+        
+        function importDataFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (confirm('Replace all data with backup?')) {
+                        members = data.members || [];
+                        contributions = data.contributions || {};
+                        saveToLocalStorage();
+                        showToast('📥 Data imported!', 'success');
+                        if (!document.getElementById('contributionsTab').classList.contains('hidden')) loadMonthData();
+                        if (!document.getElementById('membersTab').classList.contains('hidden')) renderMembersTable();
+                    }
+                } catch (e) { alert('Invalid file'); }
+                document.getElementById('fileInput').value = '';
+            };
+            reader.readAsText(file);
         }
         
         function getMonthsBetween(start, end) {
@@ -605,7 +538,7 @@
         
         function showToast(msg, type = 'info') {
             const t = document.createElement('div');
-            t.className = 'toast' + (type === 'success' ? ' success' : (type === 'error' ? ' error' : ''));
+            t.className = 'toast' + (type === 'success' ? ' success' : '');
             t.textContent = msg;
             document.body.appendChild(t);
             setTimeout(() => t.remove(), 2500);
